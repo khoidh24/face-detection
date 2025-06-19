@@ -62,7 +62,7 @@ export default function PoseDetector() {
   useEffect(() => {
     let animationId: number;
     const img = new Image();
-    img.src = "/idiot.png";
+    img.src = "/cat.png";
 
     img.onload = () => {
       const detect = () => {
