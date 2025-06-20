@@ -1,0 +1,48 @@
+stages:
+  - build
+  - deploy
+
+image: docker:19.03.12
+
+before_script:
+  - docker login -u _json_key --password-stdin https://asia.gcr.io < $GCKEY_REGISTRY
+
+.build:
+  stage: build
+  script:
+    - cp ${FILE_ENV} .env
+    - docker build -t asia.gcr.io/registry-334010/${NAME}-${BUILD_ENV}:${CI_COMMIT_SHORT_SHA} .
+    - docker tag asia.gcr.io/registry-334010/${NAME}-${BUILD_ENV}:${CI_COMMIT_SHORT_SHA} asia.gcr.io/registry-334010/${NAME}-${BUILD_ENV}:latest
+    - docker push asia.gcr.io/registry-334010/${NAME}-${BUILD_ENV}:latest
+
+.deploy:
+  stage: deploy
+  script:
+    - |
+      if [ "$(docker ps -a | grep ${NAME}-${BUILD_ENV})" ]; then
+        docker rm --force ${NAME}-${BUILD_ENV}
+      fi
+    - docker run -d --name ${NAME}-${BUILD_ENV} -p ${H_PORT}:${C_PORT} --restart always asia.gcr.io/registry-334010/${NAME}-${BUILD_ENV}:latest
+
+build-dev:
+  extends: .build
+  tags:
+    - lrt-runner-dind2
+  only:
+    - dev
+  variables:
+    NAME: ovt-games-protal
+    BUILD_ENV: dev
+    FILE_ENV: env-dev
+
+deploy-dev:
+  extends: .deploy
+  tags:
+    - lrt-runner-dind2
+  only:
+    - dev
+  variables:
+    NAME: ovt-games-protal
+    BUILD_ENV: dev
+    C_PORT: 3000
+    H_PORT: 4014
