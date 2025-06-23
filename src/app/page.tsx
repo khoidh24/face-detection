@@ -1,11 +1,16 @@
-import PoseDetector from "@/components/PoseDetector";
+"use client";
 
-export default function Home() {
+import PoseDetector from "@/components/PoseDetector";
+import dynamic from "next/dynamic";
+const GameCanvas = dynamic(() => import("@/components/GameCanvas"), {
+  ssr: false,
+});
+
+export default function GamePage() {
   return (
-    <main className="min-h-screen bg-black flex justify-center items-center">
-      <div className="w-full max-w-md aspect-[3/4] relative">
-        <PoseDetector />
-      </div>
-    </main>
+    <div className="relative">
+      <PoseDetector />
+      <GameCanvas />
+    </div>
   );
 }

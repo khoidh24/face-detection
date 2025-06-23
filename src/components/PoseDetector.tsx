@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PoseLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
+import { usePositionStore } from "@/hooks/usePositionStore";
 
 export default function PoseDetector() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -9,6 +10,7 @@ export default function PoseDetector() {
   const [poseLandmarker, setPoseLandmarker] = useState<PoseLandmarker | null>(
     null
   );
+  const { setHeadPosition } = usePositionStore();
 
   // 1. Khởi tạo pose detector
   useEffect(() => {
@@ -81,8 +83,8 @@ export default function PoseDetector() {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
         const res = poseLandmarker.detectForVideo(video, performance.now());
 
@@ -91,27 +93,19 @@ export default function PoseDetector() {
         if (res.landmarks.length > 0) {
           const landmarks = res.landmarks[0];
           const nose = landmarks[0];
-          const leftEye = landmarks[2];
-          const rightEye = landmarks[5];
-
-          const eyeMid = {
-            x: (leftEye.x + rightEye.x) / 2,
-            y: (leftEye.y + rightEye.y) / 2,
-          };
-
-          const dx = nose.x - eyeMid.x;
-          const dy = nose.y - eyeMid.y;
 
           const forehead = {
-            x: eyeMid.x - dx,
-            y: eyeMid.y - dy - 0.04,
+            x: nose.x,
+            y: nose.y - 0.04,
           };
 
-          const mirroredX = 1 - forehead.x; // 👈 mirror tọa độ X vì video bị lật
+          setHeadPosition(forehead.x, forehead.y);
+
+          const mirroredX = 1 - forehead.x;
           const x = mirroredX * canvas.width;
           const y = forehead.y * canvas.height;
 
-          const imgSize = 128;
+          const imgSize = 96;
           ctx.drawImage(
             img,
             x - imgSize / 2,
@@ -121,23 +115,21 @@ export default function PoseDetector() {
           );
 
           // 🎯 DEBUG các điểm: mũi, mắt trái, mắt phải
-          const drawDot = (pt: { x: number; y: number }, color: string) => {
-            const mirroredX = 1 - pt.x; // mirror X lại
-            ctx.beginPath();
-            ctx.arc(
-              mirroredX * canvas.width,
-              pt.y * canvas.height,
-              6,
-              0,
-              2 * Math.PI
-            );
-            ctx.fillStyle = color;
-            ctx.fill();
-          };
+          // const drawDot = (pt: { x: number; y: number }, color: string) => {
+          //   const mirroredX = 1 - pt.x;
+          //   ctx.beginPath();
+          //   ctx.arc(
+          //     mirroredX * canvas.width,
+          //     pt.y * canvas.height,
+          //     6,
+          //     0,
+          //     2 * Math.PI
+          //   );
+          //   ctx.fillStyle = color;
+          //   ctx.fill();
+          // };
 
-          drawDot(nose, "red");
-          drawDot(leftEye, "green");
-          drawDot(rightEye, "blue");
+          // drawDot(nose, "red");
         }
 
         animationId = requestAnimationFrame(detect);
@@ -150,16 +142,16 @@ export default function PoseDetector() {
   }, [poseLandmarker]);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="fixed inset-0 z-0">
       <video
         ref={videoRef}
-        className="absolute top-0 left-0 w-full h-auto transform -scale-x-100"
+        className="absolute inset-0 w-full h-full object-cover transform -scale-x-100"
         playsInline
         muted
       />
       <canvas
         ref={canvasRef}
-        className="absolute top-0 left-0 w-full h-auto pointer-events-none"
+        className="absolute inset-0 w-full h-full pointer-events-none"
       />
     </div>
   );
