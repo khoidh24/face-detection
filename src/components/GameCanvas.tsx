@@ -1,19 +1,34 @@
 "use client";
-import { useEffect, useRef } from "react";
-import { createGame } from "./Game";
+
+import { useState } from "react";
+import PoseDetector from "@/components/PoseDetector";
+import Game from "@/components/Game";
 
 export default function GameCanvas() {
-  useEffect(() => {
-    createGame(document.getElementById("phaser-container") as HTMLDivElement);
-  }, []);
+  const [isReady, setIsReady] = useState(false);
+  const [startGame, setStartGame] = useState(false);
 
   return (
-    <div
-      id="phaser-container"
-      className="absolute top-0 left-0 w-full h-full z-10 pointer-events-none"
-      style={{
-        transform: "scaleX(-1)",
-      }}
-    />
+    <div className="relative w-screen h-screen">
+      <PoseDetector onReady={() => setIsReady(true)} />
+      <Game isRunning={isReady && startGame} />
+
+      {!isReady && (
+        <div className="absolute inset-0 z-10 bg-black bg-opacity-80 flex items-center justify-center text-white text-2xl">
+          Loading Pose Detection...
+        </div>
+      )}
+
+      {isReady && !startGame && (
+        <div className="absolute inset-0 z-10 bg-black bg-opacity-60 flex items-center justify-center">
+          <button
+            className="px-6 py-3 text-xl bg-green-500 text-white rounded shadow"
+            onClick={() => setStartGame(true)}
+          >
+            Play Game
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

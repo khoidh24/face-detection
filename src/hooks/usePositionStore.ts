@@ -1,17 +1,17 @@
-// hooks/usePositionStore.ts
-
 import { create } from "zustand";
 
-interface PoseState {
-  headX: number;
-  headY: number;
+type State = {
+  x: number;
+  y: number;
   setHeadPosition: (x: number, y: number) => void;
-}
+};
 
-export const usePositionStore = create<PoseState>((set) => ({
-  headX: 0,
-  headY: 0,
-  setHeadPosition: (x, y) => set({ headX: x, headY: y }),
+export const usePositionStore = create<State>((set, get) => ({
+  x: 0.5,
+  y: 0.5,
+  setHeadPosition: (x, y) => {
+    const { x: currentX, y: currentY } = get();
+    if (Math.abs(x - currentX) < 0.001 && Math.abs(y - currentY) < 0.001) return;
+    set({ x, y });
+  },
 }));
-
-export const getPosition = () => usePositionStore.getState();
