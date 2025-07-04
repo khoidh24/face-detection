@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import PoseDetector from "@/components/PoseDetector";
 import Game from "@/components/Game";
 
@@ -8,9 +8,13 @@ export default function GameCanvas() {
   const [isReady, setIsReady] = useState(false);
   const [startGame, setStartGame] = useState(false);
 
+  const onReady = () => {
+    setIsReady(true);
+  };
+  console.log("isReady", isReady);
   return (
     <div className="relative w-screen h-screen">
-      <PoseDetector onReady={() => setIsReady(true)} />
+      <PoseDetector onReady={onReady} />
       <Game isRunning={isReady && startGame} />
 
       {!isReady && (

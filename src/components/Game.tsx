@@ -19,11 +19,13 @@ const Game = ({ isRunning }: { isRunning: boolean }) => {
 
   useEffect(() => {
     if (!isRunning || !gameContainer.current) return;
-
     class MainScene extends Phaser.Scene {
       cat!: Phaser.GameObjects.Image;
       score = 0;
       scoreText!: Phaser.GameObjects.Text;
+      fpsText!: Phaser.GameObjects.Text;
+      positionTextX!: Phaser.GameObjects.Text;
+      positionTextY!: Phaser.GameObjects.Text;
       timeText!: Phaser.GameObjects.Text;
       timerEvent!: Phaser.Time.TimerEvent;
       greenGroup!: Phaser.Physics.Arcade.Group;
@@ -36,6 +38,32 @@ const Game = ({ isRunning }: { isRunning: boolean }) => {
       }
 
       create() {
+        this.fpsText = this.add.text(200, 16, "FPS: 0", {
+          fontSize: "24px",
+          color: "#000",
+        });
+
+        this.positionTextX = this.add.text(
+          16,
+          150,
+          `${positionRef.current.x}`,
+          {
+            fontSize: "18px",
+            color: "#000",
+            fontStyle: "bold",
+          }
+        );
+        this.positionTextY = this.add.text(
+          16,
+          170,
+          `${positionRef.current.y}`,
+          {
+            fontSize: "18px",
+            color: "#000",
+            fontStyle: "bold",
+          }
+        );
+
         this.cat = this.physics.add
           .image(
             positionRef.current.x * window.innerWidth,
@@ -102,20 +130,50 @@ const Game = ({ isRunning }: { isRunning: boolean }) => {
 
       update() {
         const { x, y } = positionRef.current;
+        const posX = 1 - x * 1;
+        const deltaX = (1 - x - 0.5) * 2;
         this.cat.setPosition(
-          (1 - x) * window.innerWidth,
-          y * window.innerHeight
+          Number((posX + deltaX).toFixed(2)) * window.innerWidth,
+          Number(y.toFixed(2)) * window.innerHeight - this.cat.displayHeight
         );
+        this.fpsText.setText("FPS: " + this.game.loop.actualFps.toFixed(2));
+        this.positionTextX.setText(`${positionRef.current.x.toFixed(5)}`);
+        this.positionTextY.setText(`${positionRef.current.y.toFixed(5)}`);
+        // Destroy green objects out of screen
+        this.greenGroup
+          .getChildren()
+          .forEach((g: Phaser.GameObjects.GameObject) => {
+            if ((g as Phaser.GameObjects.Sprite).y > window.innerHeight) {
+              g.destroy();
+            }
+          });
+
+        // Destroy red objects out of screen
+        this.redGroup
+          .getChildren()
+          .forEach((r: Phaser.GameObjects.GameObject) => {
+            if ((r as Phaser.GameObjects.Sprite).y > window.innerHeight) {
+              r.destroy();
+            }
+          });
       }
 
       spawnObjects() {
         const x1 = Phaser.Math.Between(0, window.innerWidth);
         const g = this.greenGroup.create(x1, 0, "green");
-        g.setVelocityY(Phaser.Math.Between(150, 300)).setDisplaySize(48, 48);
+        const rndSize = Phaser.Math.Between(30, 48);
+        g.setVelocityY(Phaser.Math.Between(150, 300)).setDisplaySize(
+          rndSize,
+          rndSize
+        );
 
         const x2 = Phaser.Math.Between(0, window.innerWidth);
         const r = this.redGroup.create(x2, 0, "red");
-        r.setVelocityY(Phaser.Math.Between(150, 300)).setDisplaySize(48, 48);
+        const rndSizeRed = Phaser.Math.Between(30, 48);
+        r.setVelocityY(Phaser.Math.Between(150, 300)).setDisplaySize(
+          rndSizeRed,
+          rndSizeRed
+        );
       }
     }
 

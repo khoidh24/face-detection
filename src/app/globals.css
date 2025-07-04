@@ -31,3 +31,11 @@ canvas {
   top: 0;
   left: 0;
 }
+
+.key-point {
+  width: 10px;
+  height: 10px;
+  border-radius: 100%;
+  background-color: red;
+  position: absolute;
+}
