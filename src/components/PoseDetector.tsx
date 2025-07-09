@@ -48,44 +48,13 @@ const PoseDetector = ({ onReady }: { onReady: () => void }) => {
         // });
         console.log("pose", pose);
         setPoseLandmarker(pose as unknown as FaceDetector);
+        openCamera();
       } catch (error) {
+        onReady("error");
         alert(error);
       }
     };
     init();
-  }, []);
-
-  // Open camera
-  useEffect(() => {
-    const openCamera = async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        console.log(
-          "videoRef.current",
-          videoRef.current,
-          videoRef.current.readyState,
-          canvasRef.current
-        );
-        const playPromise = videoRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then((_) => {
-              // Automatic playback started!
-              // Show playing UI.
-              // We can now safely pause video...
-              // videoRef.current.pause();
-            })
-            .catch((error) => {
-              // Auto-play was prevented
-              // Show paused UI.
-            });
-        }
-      }
-    };
-    openCamera();
   }, []);
 
   // Detect loop
@@ -171,7 +140,6 @@ const PoseDetector = ({ onReady }: { onReady: () => void }) => {
 
         setHeadPosition((keypoints[0].x + keypoints[1].x) / 2, keypoints[0].y);
       }
-      onReady();
       // if (res.landmarks.length > 0) {
       //   const nose = res.landmarks[0][0];
       //   setHeadPosition(nose.x, nose.y);
@@ -185,6 +153,37 @@ const PoseDetector = ({ onReady }: { onReady: () => void }) => {
       cancelAnimationFrame(animationFrameId);
     };
   }, [onReady, poseLandmarker, setHeadPosition]);
+
+  const openCamera = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+    });
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+      console.log(
+        "videoRef.current",
+        videoRef.current,
+        videoRef.current.readyState,
+        canvasRef.current
+      );
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then((_) => {
+            // Automatic playback started!
+            // Show playing UI.
+            // We can now safely pause video...
+            // videoRef.current.pause();
+            onReady("ready");
+          })
+          .catch((error) => {
+            // Auto-play was prevented
+            // Show paused UI.
+            onReady("error");
+          });
+      }
+    }
+  };
 
   return (
     <>
