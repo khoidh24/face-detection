@@ -1,11 +1,12 @@
-import PoseDetector from "@/components/PoseDetector";
+"use client";
 
-export default function Home() {
-  return (
-    <main className="min-h-screen bg-black flex justify-center items-center">
-      <div className="w-full max-w-md aspect-[3/4] relative">
-        <PoseDetector />
-      </div>
-    </main>
-  );
+import dynamic from "next/dynamic";
+
+// Tắt SSR cho phần chứa Phaser
+const GameCanvas = dynamic(() => import("@/components/GameCanvas"), {
+  ssr: false,
+});
+
+export default function PoseGame() {
+  return <GameCanvas />;
 }
